@@ -26,7 +26,7 @@ Edit your nagios configuration to include something like this :
 
 # TODO:
 
-- The check is slow as it's parsing ps output. Maybe need to look into pgrep or figure a way to speed it up.
+- The check is slow as it's parsing ps output (sys 0m2.592s). Maybe need to look into pgrep or figure a way to speed it up.
 
 - Allows number of workers that should be verified to be passed to the check directly, something like check_dj -n 20
 
