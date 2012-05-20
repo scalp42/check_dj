@@ -8,7 +8,7 @@ UNKNOWN_STATE=3
 count=0
 count_workers=`ps -ef | grep delayed | ggrep -v grep | wc -l`
 current=(`ps -ef | grep delayed | grep -v grep | awk '{print $11}' | sort -n`)
-workers=( 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 )
+workers=( 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 )
 
 
 #echo ${id[@]}  ## DEBUG
@@ -26,14 +26,14 @@ done
 #echo ${workers[@]} ## DEBUG
 
 
-if [ $count_workers ==  19 ]
+if [ $count_workers ==  16 ]
         then echo "OK - $count_workers DJ workers running"
         exit ${OK_STATE}
 else
-	if [[ $count_workers -gt 19 ]]
+	if [[ $count_workers -gt 16 ]]
 		then echo "WARNING - Too many workers ($count_workers) running."
 		exit ${WARNING_STATE}
-	elif [[ $count_workers -lt 19 ]]
+	elif [[ $count_workers -lt 16 ]]
 		then echo "CRITICAL - only $count_workers workers are running ! Missing : ${workers[@]}"
 		exit ${CRITICAL_STATE}
 	fi
