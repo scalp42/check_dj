@@ -1,0 +1,57 @@
+#!/bin/bash
+
+count=0
+count_workers=`ps -ef | grep delayed | ggrep -v grep | wc -l`
+current=(`ps -ef | grep delayed | grep -v grep | awk '{print $11}' | sort -n`)
+workers=( 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 )
+
+date=`date`
+
+log_path="/directory/to/log/so/we/have/a/trace/of/restarts"
+
+for e in ${current[@]}; do
+        for n in ${workers[@]}; do
+                if [ ${n} == ${e} ]; then
+                        unset workers[$count]
+                else
+                        continue
+                fi
+                (( count++ ))
+        done
+done
+
+case "$1" in
+OK)
+	;;
+UNKNOWN)
+	;;
+WARNING)
+	;; # Too dangerous to automate this WARNING, in our case a higher number of workers present compared to what is supposed to be
+CRITICAL)
+
+	case "$2" in
+        SOFT)
+               	case "$3" in
+               	3)
+                  	echo -n "Restarting DEAD DJ worker (3rd soft critical state)..."
+                        for n in ${workers[@]};
+                        do
+                          	echo "$date - restarting DEAD worker ${workers[@]} - SOFT"  >> $log_path/nagios.log
+## WIP                         cd $RAILS_ROOT && bundle exec script/delayed_job start -i ${workers[@]} --min-priority 999999999 start"
+			done
+                        ;;
+			esac
+		;;
+
+        HARD)
+                        echo -n "Restarting DEAD DJ worker ... one last time." ## At that points, DevOps have been alerted
+                        for n in ${workers[@]};
+                        do
+                          	echo "$date - restarting DEAD worker ${workers[@]} - HARD"  >> $log_path/nagios.log
+# WIP                         cd $RAILS_ROOT && bundle exec script/delayed_job start -i ${workers[@]} --min-priority 999999999 start"
+                	done
+ 	               	;;
+			esac
+		;;
+esac
+exit 0
