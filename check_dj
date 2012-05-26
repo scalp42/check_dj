@@ -1,4 +1,12 @@
-#!/bin/bash
+#!/bin/sh
+## check_dj for check_dj in /Users/fresh/nagios/check_dj
+##
+## Made by Anthony Scalisi
+## <scalisi.a@gmail.com>
+##
+## Started on  Mon May 21 10:53:24 2012 Anthony Scalisi
+## Last update Mon May 21 10:53:39 2012 Anthony Scalisi
+##
 
 OK_STATE=0
 WARNING_STATE=1
@@ -6,7 +14,7 @@ CRITICAL_STATE=2
 UNKNOWN_STATE=3
 
 count=0
-count_workers=`ps -ef | grep delayed | ggrep -v grep | wc -l`
+count_workers=`ps -ef | grep delayed | grep -v grep | wc -l`
 current=(`ps -ef | grep delayed | grep -v grep | awk '{print $11}' | sort -n`)
 workers=( 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 )
 
