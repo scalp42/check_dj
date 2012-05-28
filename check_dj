@@ -1,11 +1,11 @@
-#!/bin/sh
+#!/bin/bash
 ## check_dj for check_dj in /Users/fresh/nagios/check_dj
 ##
 ## Made by Anthony Scalisi
 ## <scalisi.a@gmail.com>
 ##
 ## Started on  Mon May 21 10:53:24 2012 Anthony Scalisi
-## Last update Sat May 26 14:57:06 2012 Anthony Scalisi
+## Last update Mon May 28 15:22:28 2012 Anthony Scalisi
 ##
 
 OK_STATE=0
@@ -34,16 +34,16 @@ done
 #echo ${workers[@]} ## DEBUG
 
 
-if [ $count_workers ==  16 ]
-        then echo "OK - $count_workers DJ workers running"
-        exit ${OK_STATE}
+if [[ "$count_workers" -eq 16 ]]; then
+    echo "OK - $count_workers DJ workers running"
+    exit ${OK_STATE}
 else
-	if [[ $count_workers -gt 16 ]]
-		then echo "WARNING - Too many workers ($count_workers) running."
-		exit ${WARNING_STATE}
-	elif [[ $count_workers -lt 16 ]]
-		then echo "CRITICAL - only $count_workers workers are running ! Missing : ${workers[@]}"
-		exit ${CRITICAL_STATE}
-	fi
+    if [[ "$count_workers" -gt 16 ]]; then
+	echo "WARNING - Too many workers ($count_workers) running."
+	exit ${WARNING_STATE}
+    elif [[ "$count_workers" -lt 16 ]]; then
+	echo "CRITICAL - only $count_workers workers are running ! Missing : ${workers[@]}"
+	exit ${CRITICAL_STATE}
+    fi
 fi
 
