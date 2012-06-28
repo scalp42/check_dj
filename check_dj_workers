@@ -33,7 +33,7 @@ unless options[:crit_wks] && options[:warn_wks]
 end
 
 current_workers =`ps -ef | grep delayed | grep -v grep`.split("\n").map { |x| x.split("\s")[10] }
-workers = `ps -ef | grep delayed | grep -v grep`.collect { |job| job =~ / -i (\d{1,2})/; $1; }
+#workers = `ps -ef | grep delayed | grep -v grep`.collect { |job| job =~ / -i (\d{1,2})/; $1; }
 
 if current_workers.count > options[:warn_wks]
 	puts "WARNING - There are too many workers running : #{current_workers.count}"
