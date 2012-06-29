@@ -34,7 +34,7 @@ dead_wks = wks - current_workers
 exec_cmd = []
 dead_wks.each do |dead_worker|
   cmd = "-i #{dj_config[dead_worker][:worker]} --min-priority #{dj_config[dead_worker][:min_priority]} start --max-priority #{dj_config[dead_worker][:max_priority]} start"
-  exec_cmd << "su - deploy -c 'cd #{RAILS_ROOT}/ && #{BUNDLE_EXEC} exec script/delayed_job #{cmd}'"
+  exec_cmd << "su - deploy -c 'cd #{RAILS_ROOT}/ && #{BUNDLE_EXEC} exec script/delayed_job #{cmd}'" ### JUST USED TO OUTPUT WHAT WHOULD HAVE BEEN EXECUTED
 end
 
 ### RESTART HANDLER LOGIC ###
