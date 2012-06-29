@@ -36,12 +36,12 @@ current_workers =`ps -ef | grep delayed | grep -v grep`.split("\n").map { |x| x.
 #workers = `ps -ef | grep delayed | grep -v grep`.collect { |job| job =~ / -i (\d{1,2})/; $1; }
 
 if current_workers.count > options[:warn_wks]
-	puts "WARNING - There are too many workers running : #{current_workers.count}"
+	puts "WARNING - There are too many DJ workers running : #{current_workers.count}"
 	exit WARNING_STATE
 elsif current_workers.count < options[:crit_wks]
-	puts "CRITICAL - Missing #{options[:crit_wks] - current_workers.count} workers !"
+	puts "CRITICAL - Missing #{options[:crit_wks] - current_workers.count} DJ workers !"
 	exit CRITICAL_STATE
 else
-	puts "OK - #{current_workers.count} currently running."
+	puts "OK - #{current_workers.count} DJ workers currently running."
 	exit OK_STATE
 end
