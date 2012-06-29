@@ -4,7 +4,7 @@ require 'yaml'
 
 if ARGV.count != 0
   puts "Usage: #{$0}"
-  exit UNKNOWN_STATE
+  exit 3
 end
 
 OK_STATE = 0
