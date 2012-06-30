@@ -17,7 +17,7 @@ max_prio = dj.collect { |max| max =~ /--max-priority (\d{1,})/; $1 }
 
 #current_workers =`ps -ef | grep delayed | grep -v grep`.split("\n").map { |x| x.split("\s")[10] }
 
-current_workers = [ "6", "7", "8" ] ### FAKE A DEAD WORKER
+current_workers = [ "14", "15" ] ### FAKE A DEAD WORKER
 
 dj_config = {}
 wks.each_with_index do |value, index|
@@ -33,7 +33,9 @@ dead_wks = wks - current_workers
 
 exec_cmd = []
 dead_wks.each do |dead_worker|
-  cmd = "-i #{dj_config[dead_worker][:worker]} --min-priority #{dj_config[dead_worker][:min_priority]} start --max-priority #{dj_config[dead_worker][:max_priority]} start"
+  cmd = "-i #{dj_config[dead_worker][:worker]}"
+  cmd << " --min-priority #{dj_config[dead_worker][:min_priority]} start" if dj_config[dead_worker][:min_priority]
+  cmd << " --max-priority #{dj_config[dead_worker][:max_priority]} start" if dj_config[dead_worker][:max_priority]
   exec_cmd << "su - deploy -c 'cd #{RAILS_ROOT}/ && #{BUNDLE_EXEC} exec script/delayed_job #{cmd}'" ### JUST USED TO OUTPUT WHAT WHOULD HAVE BEEN EXECUTED
 end
 
