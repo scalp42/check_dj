@@ -1,0 +1,54 @@
+#!/usr/bin/env ruby
+
+### TO TEST : sudo ruby restart-dj-worker-yaml CRITICAL SOFT/HARD 3 ###
+
+require 'yaml'
+
+RAILS_ROOT = '/home/deploy/www/taskrabbit/current'
+LOG_PATH = '/usr/local/nagios/var'
+BUNDLE_EXEC = '/home/deploy/opt/ree/bin/bundle'
+
+### READING YAML CONFIG FILE TO FIGURE WHATS THE HOST CONFIG ###
+
+dj = YAML.load_file("#{RAILS_ROOT}/config/delayed_jobs.yml")['production']['servers'][`hostname`.strip]
+wks = dj.collect { |wkr| wkr =~ /-i (\d{1,2})/; $1 }
+min_prio = dj.collect { |min| min =~ /--min-priority (\d{1,})/; $1 }
+max_prio = dj.collect { |max| max =~ /--max-priority (\d{1,})/; $1 }
+
+#current_workers =`ps -ef | grep delayed | grep -v grep`.split("\n").map { |x| x.split("\s")[10] }
+
+current_workers = [ "14", "15" ] ### FAKE A DEAD WORKER
+
+dj_config = {}
+wks.each_with_index do |value, index|
+  dj_config[value] ||= {}
+  dj_config[value][:worker]       = value
+  dj_config[value][:min_priority] = min_prio[index] 
+  dj_config[value][:max_priority] = max_prio[index] 
+end
+
+### FIGURING WHICH ONES ARE DEAD AND LETS RESTART THEM ###
+
+dead_wks = wks - current_workers
+
+exec_cmd = []
+dead_wks.each do |dead_worker|
+  cmd = "-i #{dj_config[dead_worker][:worker]}"
+  cmd << " --min-priority #{dj_config[dead_worker][:min_priority]} start" if dj_config[dead_worker][:min_priority]
+  cmd << " --max-priority #{dj_config[dead_worker][:max_priority]} start" if dj_config[dead_worker][:max_priority]
+  exec_cmd << "su - deploy -c 'cd #{RAILS_ROOT}/ && #{BUNDLE_EXEC} exec script/delayed_job #{cmd}'" ### JUST USED TO OUTPUT WHAT WHOULD HAVE BEEN EXECUTED
+end
+
+### RESTART HANDLER LOGIC ###
+
+if ARGV[0] == "CRITICAL"
+  if ARGV[1] == "SOFT"
+    if ARGV[2] == "3"
+      puts "\nAbout to restart dead DJ workers..."
+      puts ""
+    end
+  elsif ARGV[1] == "HARD"
+      puts "\nRestarting dead DJ workers using the following command...\n\n#{exec_cmd.join("\n")}"
+      puts ""
+  end
+end
