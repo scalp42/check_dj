@@ -15,9 +15,9 @@ wks = dj.collect { |wkr| wkr =~ /-i (\d{1,2})/; $1 }
 min_prio = dj.collect { |min| min =~ /--min-priority (\d{1,})/; $1 }
 max_prio = dj.collect { |max| max =~ /--max-priority (\d{1,})/; $1 }
 
-#current_workers =`ps -ef | grep delayed | grep -v grep`.split("\n").map { |x| x.split("\s")[10] }
+current_workers =`ps -ef | grep delayed | grep -v grep`.split("\n").map { |x| x.split("\s")[10] }
 
-current_workers = [ "14", "15" ] ### FAKE A DEAD WORKER
+#current_workers = [ "14", "15" ] ### FAKE A DEAD WORKER
 
 dj_config = {}
 wks.each_with_index do |value, index|
@@ -36,19 +36,18 @@ dead_wks.each do |dead_worker|
   cmd = "-i #{dj_config[dead_worker][:worker]}"
   cmd << " --min-priority #{dj_config[dead_worker][:min_priority]} start" if dj_config[dead_worker][:min_priority]
   cmd << " --max-priority #{dj_config[dead_worker][:max_priority]} start" if dj_config[dead_worker][:max_priority]
-  exec_cmd << "su - deploy -c 'cd #{RAILS_ROOT}/ && #{BUNDLE_EXEC} exec script/delayed_job #{cmd}'" ### JUST USED TO OUTPUT WHAT WHOULD HAVE BEEN EXECUTED
+  exec_cmd << "su - deploy -c 'source /home/deploy/.ssh/environment ; . /home/deploy/.ssh/environment ; cd #{RAILS_ROOT}/ && #{BUNDLE_EXEC} exec script/delayed_job #{cmd}' &"
 end
 
 ### RESTART HANDLER LOGIC ###
 
 if ARGV[0] == "CRITICAL"
   if ARGV[1] == "SOFT"
-    if ARGV[2] == "3"
-      puts "\nAbout to restart dead DJ workers..."
-      puts ""
+    if ARGV[2] == "2"
+      %x[echo "`date` - DJ - About to restart dead DJ workers  - SOFT"  >> #{LOG_PATH}/eventhandlers.log]
     end
   elsif ARGV[1] == "HARD"
-      puts "\nRestarting dead DJ workers using the following command...\n\n#{exec_cmd.join("\n")}"
-      puts ""
+      %x[echo "`date` - DJ - Restarting dead DJ workers - HARD"  >> #{LOG_PATH}/eventhandlers.log]
+      %x[#{exec_cmd}]
   end
 end
