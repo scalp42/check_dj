@@ -8,15 +8,15 @@ RAILS_ROOT = '/home/deploy/www/taskrabbit/current'
 LOG_PATH = '/usr/local/nagios/var'
 BUNDLE_EXEC = '/home/deploy/opt/ree/bin/bundle'
 
+env = `su - deploy -c 'source /home/deploy/.ssh/environment ; . /home/deploy/.ssh/environment ; echo $RAILS_ENV'`.strip
 ### READING YAML CONFIG FILE TO FIGURE WHATS THE HOST CONFIG ###
 
-dj = YAML.load_file("#{RAILS_ROOT}/config/delayed_jobs.yml")['production']['servers'][`hostname`.strip]
-wks = dj.collect { |wkr| wkr =~ /-i (\d{1,2})/; $1 }
+dj = YAML.load_file("#{RAILS_ROOT}/config/delayed_jobs.yml")[env]['servers'][`hostname`.strip]
+wks = dj.collect { |wkr| wkr =~ /-i (\d{1,2})/; $1.to_s }
 min_prio = dj.collect { |min| min =~ /--min-priority (\d{1,})/; $1 }
 max_prio = dj.collect { |max| max =~ /--max-priority (\d{1,})/; $1 }
 
-current_workers =`ps -ef | grep delayed | grep -v grep`.split("\n").map { |x| x.split("\s")[10] }
-
+current_workers =`ps awx | grep delayed | grep -v grep`.split("\n").map { |x| x.split("\s")[7].to_s }
 #current_workers = [ "14", "15" ] ### FAKE A DEAD WORKER
 
 dj_config = {}
@@ -29,6 +29,10 @@ end
 
 ### FIGURING WHICH ONES ARE DEAD AND LETS RESTART THEM ###
 
+puts ARGV.to_yaml
+
+ARGV.each_with_index { |x,i| puts "#{x} : #{i}" }
+
 dead_wks = wks - current_workers
 
 exec_cmd = []
@@ -36,10 +40,12 @@ dead_wks.each do |dead_worker|
   cmd = "-i #{dj_config[dead_worker][:worker]}"
   cmd << " --min-priority #{dj_config[dead_worker][:min_priority]} start" if dj_config[dead_worker][:min_priority]
   cmd << " --max-priority #{dj_config[dead_worker][:max_priority]} start" if dj_config[dead_worker][:max_priority]
-  exec_cmd << "su - deploy -c 'source /home/deploy/.ssh/environment ; . /home/deploy/.ssh/environment ; cd #{RAILS_ROOT}/ && #{BUNDLE_EXEC} exec script/delayed_job #{cmd}' &"
+  exec_cmd << " ; su - deploy -c 'source /home/deploy/.ssh/environment ; . /home/deploy/.ssh/environment ; echo $RAILS_ENV >> /tmp/env.log ; cd #{RAILS_ROOT}/ && RAILS_ENV=#{env} #{BUNDLE_EXEC} exec script/delayed_job #{cmd} &'"
 end
 
 ### RESTART HANDLER LOGIC ###
+
+puts ARGV
 
 if ARGV[0] == "CRITICAL"
   if ARGV[1] == "SOFT"
@@ -48,6 +54,6 @@ if ARGV[0] == "CRITICAL"
     end
   elsif ARGV[1] == "HARD"
       %x[echo "`date` - DJ - Restarting dead DJ workers - HARD"  >> #{LOG_PATH}/eventhandlers.log]
-      %x[#{exec_cmd}]
+	%x[#{exec_cmd}]
   end
 end

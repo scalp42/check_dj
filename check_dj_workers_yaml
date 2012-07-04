@@ -12,10 +12,12 @@ WARNING_STATE = 1
 CRITICAL_STATE = 2
 UNKNOWN_STATE = 3
 
-yml_path = '/home/deploy/www/taskrabbit/current/config'
+RAILS_ROOT = '/home/deploy/www/taskrabbit/current'
 
-dj = YAML.load_file("#{yml_path}/delayed_jobs.yml")['production']['servers'][`hostname`.strip]
-wks = dj.collect { |wkr| wkr =~ /-i (\d{1,2})/; $1 }
+env = `su - deploy -c 'source /home/deploy/.ssh/environment ; . /home/deploy/.ssh/environment ; echo $RAILS_ENV'`.strip
+
+dj = YAML.load_file("#{RAILS_ROOT}/config/delayed_jobs.yml")[env]['servers'][`hostname`.strip]
+wks = dj.collect { |wkr| wkr =~ /-i (\d{1,2})/; $1.to_s }
 min_prio = dj.collect { |min| min =~ /--min-priority (\d{1,})/; $1 }
 max_prio = dj.collect { |max| max =~ /--max-priority (\d{1,})/; $1 }
 
@@ -23,7 +25,7 @@ max_prio = dj.collect { |max| max =~ /--max-priority (\d{1,})/; $1 }
 #puts "Minimum priority : #{min_prio.join(" ")}"
 #puts "Maximum priority : #{max_prio.join(" ")}"
 
-current_workers =`ps -ef | grep delayed | grep -v grep`.split("\n").map { |x| x.split("\s")[10] }
+current_workers =`ps awx | grep delayed | grep -v grep`.split("\n").map { |x| x.split("\s")[7].to_s }
 #puts "Workers : #{current_workers.join(" ")}"
 #puts wks - current_workers
 #workers = `ps -ef | grep delayed | grep -v grep`.collect { |job| job =~ / -i (\d{1,2})/; $1; }
