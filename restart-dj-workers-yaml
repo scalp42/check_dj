@@ -50,7 +50,7 @@ puts ARGV
 if ARGV[0] == "CRITICAL"
   if ARGV[1] == "SOFT"
     if ARGV[2] == "2"
-      %x[echo "`date` - DJ - About to restart dead DJ workers  - SOFT"  >> #{LOG_PATH}/eventhandlers.log]
+      %x[echo "`date` - DJ - About to restart dead DJ workers - SOFT"  >> #{LOG_PATH}/eventhandlers.log]
     end
   elsif ARGV[1] == "HARD"
       %x[echo "`date` - DJ - Restarting dead DJ workers - HARD"  >> #{LOG_PATH}/eventhandlers.log]

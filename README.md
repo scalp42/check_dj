@@ -1,10 +1,12 @@
 # DESCRIPTION:
 
-Nagios check for a host running delayed_jobs workers. Also comes with a restart-handler in case a worker is missing (or dead).
+Nagios check for a host running Delayed::Job ([https://github.com/collectiveidea/delayed_job](http://)) workers. Also comes with a restart-handler in case a worker is missing (or dead). 
+
+Ruby (_yaml) and Bash (deprecated) versions available.
 
 # REQUIREMENTS:
 
-Currently, you need to edit yourself the "map" of dj workers in the check itself, as it returns the missing workers in the output.  
+Currently, you need to edit yourself the "map" of dj workers in the check itself, as it returns the missing workers in the output (**only required for the bash version**)
 
 You also need to make sure that user "nagios" can ssh into the hosts failing (to restart the dj workers from RAILS_ROOT).
 
@@ -24,7 +26,9 @@ Edit your nagios configuration to include something like this :
        		event_handler restart-dj-worker
 	}
 
-# TODO:
+Specify the path to your YAML (**if using the Ruby version**).
+
+# TODO (bash version, deprecated):
 
 - The check is slow as it's parsing ps output (sys 0m2.592s). Maybe need to look into pgrep or figure a way to speed it up.
 
