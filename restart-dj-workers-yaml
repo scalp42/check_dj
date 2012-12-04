@@ -8,7 +8,7 @@ RAILS_ROOT = '/home/deploy/www/taskrabbit/current'
 LOG_PATH = '/usr/local/nagios/var'
 #BUNDLE_EXEC = '/home/deploy/opt/ree/bin/bundle'
 
-env = `su - deploy -c 'source /home/deploy/.ssh/environment ; . /home/deploy/.ssh/environment ; echo $RAILS_ENV'`.strip
+env = `su - deploy -c 'source /home/deploy/.ssh/environment ; . /home/deploy/.ssh/environment ; source /home/deploy/.profile ; . /home/deploy/.profile ; echo $RAILS_ENV'`.strip
 ### READING YAML CONFIG FILE TO FIGURE WHATS THE HOST CONFIG ###
 
 dj = YAML.load_file("#{RAILS_ROOT}/config/delayed_jobs.yml")[env]['servers'][`hostname`.strip]
@@ -29,9 +29,7 @@ end
 
 ### FIGURING WHICH ONES ARE DEAD AND LETS RESTART THEM ###
 
-puts ARGV.to_yaml
-
-ARGV.each_with_index { |x,i| puts "#{x} : #{i}" }
+#ARGV.each_with_index { |x,i| puts "#{x} : #{i}" }
 
 dead_wks = wks - current_workers
 
@@ -40,12 +38,10 @@ dead_wks.each do |dead_worker|
   cmd = "-i #{dj_config[dead_worker][:worker]}"
   cmd << " --min-priority #{dj_config[dead_worker][:min_priority]} start" if dj_config[dead_worker][:min_priority]
   cmd << " --max-priority #{dj_config[dead_worker][:max_priority]} start" if dj_config[dead_worker][:max_priority]
-  exec_cmd << " ; su - deploy -c 'source /home/deploy/.ssh/environment ; . /home/deploy/.ssh/environment ; echo $RAILS_ENV >> /tmp/env.log ; cd #{RAILS_ROOT}/ && RAILS_ENV=#{env} bundle exec script/delayed_job #{cmd} &'"
+  exec_cmd << "su - deploy -c 'source /home/deploy/.ssh/environment ; . /home/deploy/.ssh/environment ; source /home/deploy/.profile ; . /home/deploy/.profile ; echo $RAILS_ENV > /tmp/env.log ; cd #{RAILS_ROOT}/ && RAILS_ENV=#{env} bundle exec script/delayed_job #{cmd} &' ; "
 end
 
 ### RESTART HANDLER LOGIC ###
-
-puts ARGV
 
 if ARGV[0] == "CRITICAL"
   if ARGV[1] == "SOFT"
@@ -53,7 +49,9 @@ if ARGV[0] == "CRITICAL"
       %x[echo "`date` - DJ - About to restart dead DJ workers - SOFT"  >> #{LOG_PATH}/eventhandlers.log]
     end
   elsif ARGV[1] == "HARD"
-      %x[echo "`date` - DJ - Restarting dead DJ workers - HARD"  >> #{LOG_PATH}/eventhandlers.log]
-	%x[#{exec_cmd}]
+    %x[echo "`date` - DJ - Restarting dead DJ workers - HARD"  >> #{LOG_PATH}/eventhandlers.log]
+    exec_cmd.each do |x|
+      `#{x}`
+    end
   end
 end
