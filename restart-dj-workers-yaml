@@ -16,7 +16,7 @@ wks = dj.collect { |wkr| wkr =~ /-i (\d{1,2})/; $1.to_s }
 min_prio = dj.collect { |min| min =~ /--min-priority (\d{1,})/; $1 }
 max_prio = dj.collect { |max| max =~ /--max-priority (\d{1,})/; $1 }
 
-current_workers =`ps awx | grep delayed | grep -v grep`.split("\n").map { |x| x.split("\s")[7].to_s }
+current_workers =`ps awwx | grep delayed | grep -v grep`.split("\n").map { |x| x.split("\s")[7].to_s }
 #current_workers = [ "14", "15" ] ### FAKE A DEAD WORKER
 
 dj_config = {}
