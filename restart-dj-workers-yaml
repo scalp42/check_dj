@@ -38,7 +38,7 @@ dead_wks.each do |dead_worker|
   cmd = "-i #{dj_config[dead_worker][:worker]}"
   cmd << " --min-priority #{dj_config[dead_worker][:min_priority]} start" if dj_config[dead_worker][:min_priority]
   cmd << " --max-priority #{dj_config[dead_worker][:max_priority]} start" if dj_config[dead_worker][:max_priority]
-  exec_cmd << "su - deploy -c 'source /home/deploy/.ssh/environment ; . /home/deploy/.ssh/environment ; source /home/deploy/.profile ; . /home/deploy/.profile ; echo $RAILS_ENV > /tmp/env.log ; cd #{RAILS_ROOT}/ && RAILS_ENV=#{env} bundle exec script/delayed_job #{cmd} &' ; "
+  exec_cmd << "su - deploy -c 'source /home/deploy/.ssh/environment ; . /home/deploy/.ssh/environment ; source /home/deploy/.profile ; . /home/deploy/.profile ; echo $RAILS_ENV > /tmp/env.log ; cd #{RAILS_ROOT}/ && RAILS_ENV=#{env} bundle exec script/delayed_job #{cmd} ' & ; "
 end
 
 ### RESTART HANDLER LOGIC ###
